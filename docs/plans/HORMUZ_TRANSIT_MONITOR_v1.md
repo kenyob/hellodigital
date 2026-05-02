@@ -1,8 +1,9 @@
 # Hormuz Transit Monitor — Version 1 Build Plan
 
-> **Status:** Ready for implementation  
-> **Target branch:** `claude/hormuz-shipping-dashboard-mOgLl`  
-> **Root path:** `/hellodigital/app/hormuz-strait-path/`  
+> **Status:** In progress — Step 1 next  
+> **Repo:** `kenyob/hormuz-shipping-tracker` (private)  
+> **Branch:** `claude/hormuz-shipping-dashboard-mOgLl`  
+> **Root path:** repo root (no nesting)  
 > **Staging target:** Mac mini M1 (Apple Silicon, Docker)
 
 ---
@@ -1013,38 +1014,51 @@ NODE_ENV=development
 
 ## 22. Implementation Order (30 Steps)
 
-| # | Step | Files Created / Modified |
+**Legend:** ✅ Done &nbsp; 🔜 Next &nbsp; ⬜ Pending
+
+### Pre-Build (Complete)
+
+| # | Step | Status |
 |---|---|---|
-| 1 | Init npm workspaces root; scaffold `apps/web`, `apps/worker`, `packages/shared` | `package.json`, workspace dirs |
-| 2 | Docker Compose + Dockerfiles | `docker-compose.yml`, `docker-compose.override.yml`, `Dockerfile.web`, `Dockerfile.worker`, `Caddyfile` |
-| 3 | Prisma schema + PostGIS migration + `.env.example` | `prisma/schema.prisma`, `prisma/migrations/0001_init/migration.sql`, `.env.example` |
-| 4 | Shared types, Zod schemas, config defaults, geo utils | `packages/shared/` |
-| 5 | GeoJSON geofence files | `config/geofences/` |
-| 6 | Seed: SystemSettings defaults, geofences, 3 incidents, 5 carrier statuses | `prisma/seed.ts` |
-| 7 | Mock AIS generator (Hormuz traffic patterns, ~60 vessels) | `apps/worker/src/ais/mock.ts`, `scripts/generate-mock-ais.ts` |
-| 8 | AisProvider interface + normalizer (with quality filters) | `apps/worker/src/ais/provider.ts`, `normalizer.ts` |
-| 9 | AISStream WebSocket adapter (exponential backoff reconnection) | `apps/worker/src/ais/aisstream.ts` |
-| 10 | BullMQ queue setup + Redis dedup + vesselState upsert worker | `apps/worker/src/ingest/` |
-| 11 | IngestionHealth heartbeat (stale/outage alert triggers) | `apps/worker/src/ingest/vesselState.ts` |
-| 12 | Transit detection (PostGIS corridor crossing) | `apps/worker/src/analytics/transitDetector.ts` |
-| 13 | Delay/stationary detector (updates Vessel.vesselStatus) | `apps/worker/src/analytics/delayDetector.ts` |
-| 14 | Throughput estimator (oil + LNG) | `apps/worker/src/analytics/throughputEstimator.ts` |
-| 15 | FRED commodity ingestor (Brent, WTI, HenryHub) + `backfill:brent` script | `apps/worker/src/commodity/fredIngestor.ts`, `scripts/backfill-brent.ts` |
-| 16 | IMF PortWatch ingestor + `backfill:portwatch` script | `apps/worker/src/commodity/portWatchIngestor.ts`, `scripts/backfill-portwatch.ts` |
-| 17 | Paid AIS historical provider stub + `backfill:ais` graceful-fail script | `apps/worker/src/ais/historicalProvider.ts`, `scripts/backfill-ais.ts` |
-| 18 | Alert evaluator (all rule types, Redis cooldown dedup) | `apps/worker/src/alerts/alertEvaluator.ts` |
-| 19 | Corridor scorer (risk scoring, every 30 min) | `apps/worker/src/analytics/corridorScorer.ts` |
-| 20 | Worker entry: starts all processes + BullMQ jobs | `apps/worker/src/index.ts` |
-| 21 | Daily aggregate rollup job (midnight UTC) | `apps/worker/src/jobs/dailyRollupJob.ts` |
-| 22 | Next.js API routes: GET (kpis, vessels, transits, incidents, commodity, data-health, SSE streams) | `apps/web/app/api/` |
-| 23 | Next.js API routes: POST/admin (incidents, carrier-status, settings, geofences) | `apps/web/app/api/` |
-| 24 | Dashboard page `/` — KPIs, Recharts charts, alert banner, disclaimer | `apps/web/app/page.tsx` + dashboard components |
-| 25 | Map page `/map` — MapLibre GL JS, all layers, layer toggles | `apps/web/app/map/page.tsx`, `components/map/` |
-| 26 | Vessels page `/vessels` — searchable/filterable table, confidence badges | `apps/web/app/vessels/page.tsx` |
-| 27 | Alerts page + carrier status + incidents pages | `apps/web/app/alerts/`, `carrier-status/`, `incidents/` |
-| 28 | Settings admin page | `apps/web/app/settings/page.tsx` |
-| 29 | Methodology pages + safe-passage explainer | `apps/web/app/methodology/` |
-| 30 | Unit tests (Vitest) + Playwright smoke tests + README | `tests/`, `README.md` |
+| — | Create repo `kenyob/hormuz-shipping-tracker`, branch `claude/hormuz-shipping-dashboard-mOgLl` | ✅ |
+| — | Full directory skeleton (`apps/`, `packages/`, `config/`, `prisma/`, `scripts/`, `tests/`, `docs/`) | ✅ |
+| — | `agents.md` — project guide for all agents | ✅ |
+| — | `docs/plans/HORMUZ_TRANSIT_MONITOR_v1.md` — this plan | ✅ |
+
+### Build Steps
+
+| # | Step | Files | Status |
+|---|---|---|---|
+| 1 | Init npm workspaces root; `package.json` for `apps/web`, `apps/worker`, `packages/shared` | `package.json` × 4 | 🔜 |
+| 2 | Docker Compose + Dockerfiles + Caddyfile | `docker-compose.yml`, `docker-compose.override.yml`, `Dockerfile.web`, `Dockerfile.worker`, `Caddyfile` | ⬜ |
+| 3 | Prisma schema + PostGIS migration + `.env.example` | `prisma/schema.prisma`, `prisma/migrations/0001_init/migration.sql`, `.env.example` | ⬜ |
+| 4 | Shared types, Zod schemas, config defaults, geo utils | `packages/shared/` | ⬜ |
+| 5 | GeoJSON geofence files | `config/geofences/` | ⬜ |
+| 6 | Seed: SystemSettings defaults, geofences, 3 incidents, 5 carrier statuses | `prisma/seed.ts` | ⬜ |
+| 7 | Mock AIS generator (Hormuz traffic patterns, ~60 vessels) | `apps/worker/src/ais/mock.ts`, `scripts/generate-mock-ais.ts` | ⬜ |
+| 8 | AisProvider interface + normalizer (with quality filters) | `apps/worker/src/ais/provider.ts`, `normalizer.ts` | ⬜ |
+| 9 | AISStream WebSocket adapter (exponential backoff reconnection) | `apps/worker/src/ais/aisstream.ts` | ⬜ |
+| 10 | BullMQ queue setup + Redis dedup + vesselState upsert worker | `apps/worker/src/ingest/` | ⬜ |
+| 11 | IngestionHealth heartbeat (stale/outage alert triggers) | `apps/worker/src/ingest/vesselState.ts` | ⬜ |
+| 12 | Transit detection (PostGIS corridor crossing) | `apps/worker/src/analytics/transitDetector.ts` | ⬜ |
+| 13 | Delay/stationary detector (updates `Vessel.vesselStatus`) | `apps/worker/src/analytics/delayDetector.ts` | ⬜ |
+| 14 | Throughput estimator (oil + LNG) | `apps/worker/src/analytics/throughputEstimator.ts` | ⬜ |
+| 15 | FRED commodity ingestor (Brent, WTI, HenryHub) + `backfill:brent` script | `apps/worker/src/commodity/fredIngestor.ts`, `scripts/backfill-brent.ts` | ⬜ |
+| 16 | IMF PortWatch ingestor + `backfill:portwatch` script | `apps/worker/src/commodity/portWatchIngestor.ts`, `scripts/backfill-portwatch.ts` | ⬜ |
+| 17 | Paid AIS historical provider stub + `backfill:ais` graceful-fail script | `apps/worker/src/ais/historicalProvider.ts`, `scripts/backfill-ais.ts` | ⬜ |
+| 18 | Alert evaluator (all rule types, Redis cooldown dedup) | `apps/worker/src/alerts/alertEvaluator.ts` | ⬜ |
+| 19 | Corridor scorer (risk scoring, every 30 min) | `apps/worker/src/analytics/corridorScorer.ts` | ⬜ |
+| 20 | Worker entry: starts all processes + BullMQ jobs | `apps/worker/src/index.ts` | ⬜ |
+| 21 | Daily aggregate rollup job (midnight UTC) | `apps/worker/src/jobs/dailyRollupJob.ts` | ⬜ |
+| 22 | Next.js API routes: GET (kpis, vessels, transits, incidents, commodity, data-health, SSE streams) | `apps/web/app/api/` | ⬜ |
+| 23 | Next.js API routes: POST/admin (incidents, carrier-status, settings, geofences) | `apps/web/app/api/` | ⬜ |
+| 24 | Dashboard page `/` — KPIs, Recharts charts, alert banner, disclaimer | `apps/web/app/page.tsx` + dashboard components | ⬜ |
+| 25 | Map page `/map` — MapLibre GL JS, all layers, layer toggles | `apps/web/app/map/page.tsx`, `components/map/` | ⬜ |
+| 26 | Vessels page `/vessels` — searchable/filterable table, confidence badges | `apps/web/app/vessels/page.tsx` | ⬜ |
+| 27 | Alerts page + carrier status + incidents pages | `apps/web/app/alerts/`, `carrier-status/`, `incidents/` | ⬜ |
+| 28 | Settings admin page | `apps/web/app/settings/page.tsx` | ⬜ |
+| 29 | Methodology pages + safe-passage explainer | `apps/web/app/methodology/` | ⬜ |
+| 30 | Unit tests (Vitest) + Playwright smoke tests + README | `tests/`, `README.md` | ⬜ |
 
 ---
 
